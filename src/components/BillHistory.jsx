@@ -79,12 +79,12 @@ export default function BillHistory({ navigate }) {
   }
 
   const whatsapp = bill => {
-    const msg = `*${settings.businessName || 'Iron Billing'}*\nBill #${String(bill.billNumber).padStart(4,'0')}\nParty: ${bill.partyName}\nDate: ${new Date(bill.date).toLocaleDateString('en-IN')}\nTons: ${bill.tons}T\nTotal: ₹${Number(bill.total).toLocaleString('en-IN')}\nStatus: ${bill.status}`
+    const msg = `*${settings.businessName || 'Iron Billing'}*\nBill #${String(bill.billNumber).padStart(4,'0')}\nParty: ${bill.partyName}\nDate: ${new Date(bill.date).toLocaleDateString('en-IN')}\nWeight: ${bill.weightKg || (bill.tons * 1000) || 0} KG\nTotal: ₹${Number(bill.total).toLocaleString('en-IN')}\nStatus: ${bill.status}`
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank')
   }
 
   const totalRev  = filtered.reduce((s, b) => s + Number(b.total), 0)
-  const totalTons = filtered.reduce((s, b) => s + Number(b.tons),  0)
+  const totalWeight = filtered.reduce((s, b) => s + Number(b.weightKg || (b.tons * 1000) || 0), 0)
   const hasFilters = partyQ || dateFrom || dateTo || statusF !== 'All'
 
   return (
@@ -174,7 +174,7 @@ export default function BillHistory({ navigate }) {
         <div className="flex gap-3 mb-3 text-sm">
           <span className="text-slate-400">{filtered.length} bills</span>
           <span className="text-slate-300">·</span>
-          <span className="text-slate-500">{totalTons.toFixed(1)}T</span>
+          <span className="text-slate-500">{totalWeight.toLocaleString('en-IN')} KG</span>
           <span className="text-slate-300">·</span>
           <span className="font-semibold text-teal-600">{fmt(totalRev)}</span>
         </div>
@@ -202,7 +202,7 @@ export default function BillHistory({ navigate }) {
                     </div>
                     <div className="text-xs text-slate-400">
                       {new Date(b.date).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}
-                      {' · '}{b.tons}T
+                      {' · '}{b.weightKg || (b.tons * 1000) || 0} KG
                       {' · '}₹{Number(b.ratePerTon).toLocaleString('en-IN')}/T
                       {b.notes && <> · {b.notes}</>}
                     </div>

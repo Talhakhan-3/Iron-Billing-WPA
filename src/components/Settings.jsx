@@ -18,7 +18,13 @@ export default function Settings() {
     deliveryCharge: '0',
     weightCharge: '0',
     biltyCharge: '0',
-    serviceTax: '0'
+    serviceTax: '0',
+    // New bank & payment fields
+    bankName: '',
+    accountNo: '',
+    ifscCode: '',
+    gpayNo: '',
+    phonepeNo: '',
   })
   
   const [saved, setSaved]   = useState(false)
@@ -54,6 +60,12 @@ export default function Settings() {
       weightCharge:     s.weightCharge    || '0',
       biltyCharge:      s.biltyCharge     || '0',
       serviceTax:       s.serviceTax      || '0',
+      // Load new fields
+      bankName:         s.bankName        || '',
+      accountNo:        s.accountNo       || '',
+      ifscCode:         s.ifscCode        || '',
+      gpayNo:           s.gpayNo          || '',
+      phonepeNo:        s.phonepeNo       || '',
     })
   }
 
@@ -245,6 +257,58 @@ export default function Settings() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Bank & Payment Details (New Section) */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+        <h2 className="font-semibold text-slate-700 text-sm mb-4">
+          Bank & Payment Details (PDF mein aayega)
+        </h2>
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs text-slate-400 block mb-1">Bank Name</label>
+            <input type="text" value={form.bankName}
+              onChange={e => setForm(f => ({ ...f, bankName: e.target.value }))}
+              placeholder="e.g. State Bank of India"
+              className="inp" />
+          </div>
+          <div>
+            <label className="text-xs text-slate-400 block mb-1">Account Number</label>
+            <input type="text" value={form.accountNo}
+              onChange={e => setForm(f => ({ ...f, accountNo: e.target.value }))}
+              placeholder="e.g. 12345678901234"
+              className="inp" />
+          </div>
+          <div>
+            <label className="text-xs text-slate-400 block mb-1">IFSC Code</label>
+            <input type="text" value={form.ifscCode}
+              onChange={e => setForm(f => ({ ...f, ifscCode: e.target.value.toUpperCase() }))}
+              placeholder="e.g. SBIN0001234"
+              className="inp" style={{ textTransform: 'uppercase' }} />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-xs text-slate-400 block mb-1">GPay Number</label>
+              <input type="tel" value={form.gpayNo}
+                onChange={e => setForm(f => ({ ...f, gpayNo: e.target.value }))}
+                placeholder="10 digit number"
+                className="inp" />
+            </div>
+            <div>
+              <label className="text-xs text-slate-400 block mb-1">PhonePe Number</label>
+              <input type="tel" value={form.phonepeNo}
+                onChange={e => setForm(f => ({ ...f, phonepeNo: e.target.value }))}
+                placeholder="10 digit number"
+                className="inp" />
+            </div>
+          </div>
+        </div>
+        <button onClick={saveSettings}
+          className={`w-full min-h-[44px] rounded-xl font-medium text-sm transition-colors flex items-center justify-center gap-1.5 mt-4 ${
+            saved ? 'bg-green-500 text-white' : 'bg-teal-600 text-white hover:bg-teal-700'
+          }`}>
+          <Save size={15} /> {saved ? 'Saved!' : 'Save Settings'}
+        </button>
       </div>
 
       {/* Cloud Sync */}

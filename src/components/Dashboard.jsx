@@ -4,7 +4,7 @@ import { getAnalytics } from '../services/AnalyticsService'
 import { syncWithCloud } from '../db/db'
 
 const fmt  = n => `₹${Number(n || 0).toLocaleString('en-IN')}`
-const fmtT = n => `${Number(n || 0).toFixed(1)}T`
+const fmtW = n => `${Number(n || 0).toLocaleString('en-IN')} KG`
 
 const STATUS_STYLE = {
   Paid:    'bg-green-100 text-green-700',
@@ -78,7 +78,7 @@ export default function Dashboard({ navigate }) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { label: 'Revenue',      value: fmt(current.revenue),  Icon: Receipt,      color: 'teal'  },
-          { label: 'Tons Moved',   value: fmtT(current.tons),    Icon: Package,      color: 'blue'  },
+          { label: 'Weight Moved', value: fmtW(current.weight), Icon: Package, color: 'blue' },
           { label: 'Bills Created',value: current.bills,         Icon: TrendingUp,   color: 'purple'},
           { label: 'Pending Dues', value: fmt(data.pendingDues), Icon: AlertCircle,  color: 'red'   },
         ].map(({ label, value, Icon, color }) => {
@@ -113,12 +113,12 @@ export default function Dashboard({ navigate }) {
           <div className="flex-1 bg-teal-50 rounded-xl p-3">
             <div className="text-xs text-teal-600 font-medium mb-1">This Month</div>
             <div className="text-lg font-bold text-teal-700">{fmt(data.thisMonth.revenue)}</div>
-            <div className="text-xs text-slate-400">{fmtT(data.thisMonth.tons)} · {data.thisMonth.bills} bills</div>
+            <div className="text-xs text-slate-400">{fmtW(data.thisMonth.weight)} · {data.thisMonth.bills} bills</div>
           </div>
           <div className="flex-1 bg-slate-50 rounded-xl p-3">
             <div className="text-xs text-slate-500 font-medium mb-1">Last Month</div>
             <div className="text-lg font-bold text-slate-600">{fmt(data.lastMonth.revenue)}</div>
-            <div className="text-xs text-slate-400">{fmtT(data.lastMonth.tons)} · {data.lastMonth.bills} bills</div>
+            <div className="text-xs text-slate-400">{fmtW(data.lastMonth.weight)} · {data.lastMonth.bills} bills</div>
           </div>
         </div>
       </div>
@@ -224,7 +224,7 @@ export default function Dashboard({ navigate }) {
                         <div className="bg-teal-500 h-1.5 rounded-full"
                           style={{ width: `${(p.revenue / data.topParties[0].revenue) * 100}%` }} />
                       </div>
-                      <span className="text-xs text-slate-400 flex-shrink-0">{fmtT(p.tons)}</span>
+                      <span className="text-xs text-slate-400 flex-shrink-0">{fmtW(p.weight)}</span>
                     </div>
                   </div>
                 </div>

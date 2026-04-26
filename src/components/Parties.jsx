@@ -3,8 +3,9 @@ import { Plus, Edit2, Trash2, Users } from 'lucide-react'
 import { db, syncWithCloud } from '../db/db'
 
 export default function Parties() {
+  // Updated State: Added 'type' with default 'Consignor'
   const [parties, setParties] = useState([])
-  const [form, setForm]       = useState({ name: '', phone: '', address: '' })
+  const [form, setForm]       = useState({ name: '', phone: '', address: '', type: 'Consignor' })
   const [editId, setEditId]   = useState(null)
   const [search, setSearch]   = useState('')
   const [deleteId, setDeleteId] = useState(null)
@@ -19,22 +20,34 @@ export default function Parties() {
   const save = async () => {
     if (!form.name.trim()) return alert('Party naam zaroori hai!')
     const now = new Date().toISOString()
+
+    // Updated Save logic: Includes 'type' field
+    const partyData = { ...form, synced: 0, updatedAt: now }
+
     if (editId) {
-      await db.parties.update(editId, { ...form, synced: 0, updatedAt: now })
+      await db.parties.update(editId, partyData)
       setEditId(null)
     } else {
       const exists = await db.parties.where('name').equalsIgnoreCase(form.name.trim()).first()
       if (exists) return alert('Ye party pehle se hai!')
-      await db.parties.add({ ...form, synced: 0, updatedAt: now })
+      await db.parties.add(partyData)
     }
-    setForm({ name: '', phone: '', address: '' })
+
+    // Reset form including default type
+    setForm({ name: '', phone: '', address: '', type: 'Consignor' })
     load()
     syncWithCloud()
   }
 
   const startEdit = p => {
     setEditId(p.id)
-    setForm({ name: p.name, phone: p.phone || '', address: p.address || '' })
+    // Updated Edit: Mapping existing type or defaulting to Consignor
+    setForm({ 
+      name: p.name, 
+      phone: p.phone || '', 
+      address: p.address || '', 
+      type: p.type || 'Consignor' 
+    })
   }
 
   const del = async id => {
@@ -49,15 +62,39 @@ export default function Parties() {
     <div>
       <h1 className="text-xl font-bold text-slate-800 mb-4">Parties ({parties.length})</h1>
       <div className="grid md:grid-cols-3 gap-4">
-        {/* Form */}
+        
+        {/* Form Section */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-          <h2 className="font-semibold text-slate-700 text-sm mb-3">{editId ? 'Edit Party' : 'Add New Party'}</h2>
+          <h2 className="font-semibold text-slate-700 text-sm mb-3">
+            {editId ? 'Edit Party' : 'Add New Party'}
+          </h2>
           <div className="space-y-2.5">
             <input type="text" value={form.name}
               onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
               placeholder="Party ka naam *"
               className="inp"
             />
+
+            {/* Party Type Selection */}
+            <div>
+              <label className="text-xs text-slate-400 block mb-1">Party Type</label>
+              <div className="flex gap-2">
+                {['Consignor', 'Consignee', 'Both'].map(t => (
+                  <button 
+                    key={t}
+                    onClick={() => setForm(f => ({ ...f, type: t }))}
+                    className={`flex-1 min-h-[44px] py-2 rounded-xl text-xs font-semibold border-2 transition-all ${
+                      form.type === t 
+                        ? 'border-teal-500 bg-teal-500 text-white' 
+                        : 'border-slate-200 text-slate-500 hover:border-teal-300'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <input type="tel" value={form.phone}
               onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
               placeholder="Phone number"
@@ -74,7 +111,7 @@ export default function Parties() {
               <Plus size={16} /> {editId ? 'Update Party' : 'Add Party'}
             </button>
             {editId && (
-              <button onClick={() => { setEditId(null); setForm({ name: '', phone: '', address: '' }) }}
+              <button onClick={() => { setEditId(null); setForm({ name: '', phone: '', address: '', type: 'Consignor' }) }}
                 className="w-full border border-slate-200 text-slate-500 py-2 rounded-xl text-sm hover:bg-slate-50 transition-colors">
                 Cancel
               </button>
@@ -82,7 +119,7 @@ export default function Parties() {
           </div>
         </div>
 
-        {/* List */}
+        {/* List Section */}
         <div className="md:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
           <input type="text" value={search}
             onChange={e => setSearch(e.target.value)}
@@ -100,11 +137,18 @@ export default function Parties() {
                 <div key={p.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors">
                   <div className="min-w-0">
                     <div className="font-medium text-slate-700 text-sm">{p.name}</div>
-                    {(p.phone || p.address) && (
-                      <div className="text-xs text-slate-400 truncate">
-                        {p.phone && `📞 ${p.phone}`}{p.phone && p.address && ' · '}{p.address}
-                      </div>
-                    )}
+                    
+                    {/* Badge and Info Logic */}
+                    <div className="text-xs text-slate-400 truncate">
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold mr-1 uppercase ${
+                        p.type === 'Consignor' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
+                        p.type === 'Consignee' ? 'bg-purple-50 text-purple-600 border border-purple-100' :
+                        'bg-teal-50 text-teal-600 border border-teal-100'
+                      }`}>
+                        {p.type || 'Consignor'}
+                      </span>
+                      {p.phone && `📞 ${p.phone}`}{p.phone && p.address && ' · '}{p.address}
+                    </div>
                   </div>
                   <div className="flex gap-1 ml-2 flex-shrink-0">
                     <button onClick={() => startEdit(p)}
@@ -123,6 +167,7 @@ export default function Parties() {
         </div>
       </div>
 
+      {/* Delete Confirmation Modal */}
       {deleteId && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">

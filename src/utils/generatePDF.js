@@ -1,5 +1,6 @@
 export async function generateBillPDF(bill, settings = {}) {
 
+  // ----- SETTINGS FIELDS -----
   const biz          = settings.businessName    || 'Shree Transport'
   const addr         = settings.businessAddress || 'Mumbai, Maharashtra'
   const ph           = settings.businessPhone   || ''
@@ -10,14 +11,36 @@ export async function generateBillPDF(bill, settings = {}) {
   const terms        = settings.termsText       ||
     '1. Delivery of goods must be taken within 7 days of booking. No claims after 7 days.\n2. After 30 days company is not responsible for any loss of goods.\n3. Payment by Cheque only — No Cash accepted.'
 
+  // Extra charges
   const lampingCharge  = parseFloat(settings.lampingCharge  || 0)
   const loadingCharge  = parseFloat(settings.loadingCharge  || 0)
   const deliveryCharge = parseFloat(settings.deliveryCharge || 0)
   const biltyCharge    = parseFloat(settings.biltyCharge    || 0)
   const serviceTax     = parseFloat(settings.serviceTax     || 0)
   const totalCharges   = lampingCharge + loadingCharge + deliveryCharge + biltyCharge + serviceTax
-  const grandTotal     = Number(bill.total) + totalCharges
 
+  // Bank & payment details from settings (owner's details)
+  const bankNameSetting   = settings.bankName  || ''
+  const accountNo         = settings.accountNo || ''
+  const ifscCode          = settings.ifscCode  || ''
+  const gpayNo            = settings.gpayNo    || ''
+  const phonepeNo         = settings.phonepeNo || ''
+
+  // ----- BILL FIELDS (with fallbacks for old data) -----
+  const weightKg        = bill.weightKg || (bill.tons ? bill.tons * 1000 : 0)
+  const ratePerKg       = bill.ratePerKg || (bill.ratePerTon ? bill.ratePerTon / 1000 : 0)
+  const itemDescription = bill.itemDescription || 'Iron / Loha'
+  const itemSize        = bill.itemSize || ''
+  const vehicleNo       = bill.vehicleNo || ''
+  const consigneeName   = bill.consigneeName || ''
+  const paymentMode     = bill.paymentMode || (bill.status === 'Paid' ? 'Cash' : bill.status)
+  const chequeNo        = bill.chequeNo || '—'
+
+  // Bank name on bill (if cheque was used) otherwise fallback to settings bank name
+  const billBankName = (paymentMode === 'Cheque' && bill.bankName) ? bill.bankName : bankNameSetting
+
+  // ----- TOTALS -----
+  const grandTotal     = Number(bill.total) + totalCharges
   const fmt = n => `₹${Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
   const dateStr = new Date(bill.date).toLocaleDateString('en-IN', {
     day: '2-digit', month: 'short', year: 'numeric'
@@ -28,12 +51,10 @@ export async function generateBillPDF(bill, settings = {}) {
   const balance = bill.status === 'Partial' ? Number(bill.total) - Number(bill.paidAmount || 0)
                 : bill.status === 'Unpaid'  ? Number(bill.total) : 0
 
-  // Bill-level variable fields
-  const deliveryPoint = bill.deliveryPoint || ''
-  const paymentMode   = bill.paymentMode   || (bill.status === 'Paid' ? 'Cash' : bill.status)
-  const bankName      = bill.bankName      || '—'
-  const chequeNo      = bill.chequeNo      || '—'
+  // Item description with size/grade
+  const itemDesc = itemSize ? `${itemDescription} (${itemSize})` : itemDescription
 
+  // Formatting for HTML sections
   const termLines   = terms.split('\n').map(t => `<li>${t.trim()}</li>`).join('')
   const branchHTML  = branches
     ? branches.split('\n').map(b =>
@@ -41,7 +62,7 @@ export async function generateBillPDF(bill, settings = {}) {
       ).join('')
     : `<div class="bi"><div class="dot"></div><span>Mob: ${ph}</span></div>`
 
-  // Logo: data URL directly usable as src
+  // Logo handling
   const logoSrc = logoBase64
     ? `<img src="${logoBase64}" class="logo-img" alt="${biz}"
          onerror="this.style.display='none';document.getElementById('biz-text').style.display='block'"/>`
@@ -49,6 +70,20 @@ export async function generateBillPDF(bill, settings = {}) {
   const bizFallback = !logoBase64
     ? `<div id="biz-text" style="font-size:22px;font-weight:900;color:#1a3a2a;letter-spacing:0.05em;">${biz.toUpperCase()}</div>`
     : `<div id="biz-text" style="display:none;font-size:22px;font-weight:900;color:#1a3a2a;letter-spacing:0.05em;">${biz.toUpperCase()}</div>`
+
+  // Bank details section (owner's bank info)
+  const ownerBankDetails = (bankNameSetting && accountNo) ? `
+    <div class="bnk">
+      <div class="bh">Payment / Bank Details</div>
+      <div class="brow">
+        <span><strong>Bank:</strong> ${bankNameSetting}</span>
+        <span><strong>A/C:</strong> ${accountNo}</span>
+        <span><strong>IFSC:</strong> ${ifscCode}</span>
+        ${gpayNo ? `<span><strong>GPay:</strong> ${gpayNo}</span>` : ''}
+        ${phonepeNo ? `<span><strong>PhonePe:</strong> ${phonepeNo}</span>` : ''}
+      </div>
+    </div>
+  ` : ''
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -147,6 +182,12 @@ export async function generateBillPDF(bill, settings = {}) {
   .tl2{list-style:none;color:#555;font-size:9.5px;line-height:1.9;}
   .tl2 li::before{content:"• ";color:#2d6a4f;font-weight:700;}
 
+  /* BANK DETAILS (owner) */
+  .bnk{border-bottom:1px solid #999;padding:7px 18px;background:#f9f9f9;}
+  .bh{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#2d6a4f;margin-bottom:4px;}
+  .brow{display:flex;gap:20px;flex-wrap:wrap;font-size:9.5px;color:#333;}
+  .brow strong{color:#111;}
+
   /* BRANCH */
   .br{background:#1a3a2a;color:rgba(255,255,255,0.9);padding:7px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:5px;font-size:8.5px;}
   .bcs{display:flex;gap:18px;flex-wrap:wrap;}
@@ -204,16 +245,16 @@ export async function generateBillPDF(bill, settings = {}) {
       <div class="bl">&nbsp;</div>
     </div>
     <div class="pb">
-      <div class="sl">Ship To (Delivery Point)</div>
-      ${deliveryPoint
-        ? `<div class="pd" style="margin-top:4px;">${deliveryPoint}</div>`
-        : `<div class="bl" style="margin-top:4px;">&nbsp;</div><div class="bl">&nbsp;</div><div class="bl">&nbsp;</div>`
+      <div class="sl">Ship To (Consignee)</div>
+      ${consigneeName 
+        ? `<div class="pn">${consigneeName}</div><div class="bl" style="margin-top:6px;">&nbsp;</div>`
+        : `<div class="bl" style="margin-top:4px;">&nbsp;</div><div class="bl">&nbsp;</div>`
       }
     </div>
   </div>
 
   <div class="tg">
-    <div class="tc"><div class="tl">Vehicle No.</div><div class="tv">&nbsp;</div></div>
+    <div class="tc"><div class="tl">Vehicle No.</div><div class="tv">${vehicleNo || '&nbsp;'}</div></div>
     <div class="tc"><div class="tl">LR / GR No.</div><div class="tv">&nbsp;</div></div>
     <div class="tc"><div class="tl">Booking Point</div><div class="tv">&nbsp;</div></div>
     <div class="tc"><div class="tl">Destination</div><div class="tv">&nbsp;</div></div>
@@ -229,18 +270,18 @@ export async function generateBillPDF(bill, settings = {}) {
           <th class="c" style="width:44px">Qty</th>
           <th class="c" style="width:40px">Unit</th>
           <th class="c" style="width:62px">Weight</th>
-          <th class="r" style="width:80px">Rate (₹)</th>
+          <th class="c" style="width:80px">Rate (₹)</th>
           <th class="r" style="width:80px">Amount (₹)</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td class="sno c">1</td>
-          <td class="desc">Iron / Loha (Transport)</td>
+          <td class="desc">${itemDesc}</td>
           <td class="c">1</td>
           <td class="c">Pcs</td>
-          <td class="c">${bill.tons} Ton${bill.tons > 1 ? 's' : ''}</td>
-          <td class="r">${fmt(bill.ratePerTon)}</td>
+          <td class="c">${weightKg} KG</td>
+          <td class="r">${fmt(ratePerKg)}/KG</td>
           <td class="r">${fmt(bill.total)}</td>
         </tr>
         <tr class="er"><td class="c sno">2</td><td>&nbsp;</td><td></td><td></td><td></td><td class="r">—</td><td class="r">—</td></tr>
@@ -258,8 +299,16 @@ export async function generateBillPDF(bill, settings = {}) {
       <div class="cr"><span class="clb">Bilty Charges</span><span class="cvl">${fmt(biltyCharge)}</span></div>
       <div class="cr"><span class="clb">Service Tax (Consignor)</span><span class="cvl">${fmt(serviceTax)}</span></div>
       <div class="cr"><span class="clb">Payment Mode</span><span class="cvl" style="color:#2d6a4f">${paymentMode}</span></div>
-      <div class="cr"><span class="clb">Bank Name</span><span class="cvl">${bankName}</span></div>
-      <div class="cr"><span class="clb">Cheque No.</span><span class="cvl">${chequeNo}</span></div>
+      ${paymentMode === 'Cheque' ? `
+        <div class="cr"><span class="clb">Bank Name</span><span class="cvl">${billBankName}</span></div>
+        <div class="cr"><span class="clb">Cheque No.</span><span class="cvl">${chequeNo}</span></div>
+      ` : ''}
+      ${paymentMode === 'GPay' && gpayNo ? `
+        <div class="cr"><span class="clb">GPay No.</span><span class="cvl">${gpayNo}</span></div>
+      ` : ''}
+      ${paymentMode === 'PhonePe' && phonepeNo ? `
+        <div class="cr"><span class="clb">PhonePe No.</span><span class="cvl">${phonepeNo}</span></div>
+      ` : ''}
     </div>
     <div class="sc">
       <div class="sr"><span class="lb">Sub Total</span><span class="vl">${fmt(bill.total)}</span></div>
@@ -294,6 +343,8 @@ export async function generateBillPDF(bill, settings = {}) {
     <ul class="tl2">${termLines}</ul>
   </div>
 
+  ${ownerBankDetails}
+
   <div class="br">
     <div class="bcs">${branchHTML}</div>
     ${timing ? `<div class="tm">${timing}</div>` : ''}
@@ -307,7 +358,6 @@ export async function generateBillPDF(bill, settings = {}) {
 
 </div>
 <script>
-  // Auto print only — no dark mode
   window.addEventListener('load', function() {
     setTimeout(function() { window.print(); }, 600);
   });
