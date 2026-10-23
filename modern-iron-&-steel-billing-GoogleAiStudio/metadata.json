@@ -1,0 +1,6 @@
+{
+  "name": "Iron Billing - Modern Iron & Steel Billing System",
+  "description": "Professional, high-performance offline-first billing, invoicing, and ledger management application for iron, steel, and hardware merchants.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
