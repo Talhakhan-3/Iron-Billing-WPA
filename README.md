@@ -1,16 +1,50 @@
-# React + Vite
+# Iron Billing — Modern Commercial Iron & Steel Billing System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A high-performance, offline-first billing, invoicing, and ledger management application built for iron, steel, and heavy hardware merchants.
 
-Currently, two official plugins are available:
+## 🚀 Key Modernizations & Fixes
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. **Seamless Light & Dark Themes**:
+   - Complete custom variant support for Tailwind CSS v4 (`@custom-variant dark`).
+   - Unified segmented toggle (`[ Light | Dark ]`) in the top app bar, sidebar, and Settings.
+   - Clean, high-contrast light mode with crisp borders, readable dark slate typography, and emerald accents.
+   - Print isolation: Printed bilty and PDF invoices always render on clean white paper with high-contrast text irrespective of screen dark mode.
 
-## React Compiler
+2. **Rapid Keyboard-First Billing**:
+   - **Auto-Sequence Numbering**: Next bill number is automatically fetched and pre-populated on form load.
+   - **Keyboard Navigation**: Press `Enter` to traverse through fields, and `Ctrl + Enter` (or `Cmd + Enter`) to save the bill instantly from anywhere.
+   - **Fast Metric Weight Presets**: Quick-select buttons (`250kg`, `500kg`, `1T`, `2T`, `5T`, `10T`, `15T`, `20T`) and increment chips (`+500kg`, `+1 Ton`).
+   - **Smart Party & Rate Lookup**: Keyboard arrow navigation in autocomplete suggestions with instant party phone retrieval.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+3. **In-App Print & PDF Preview Modal**:
+   - Solves browser popup blocking bugs by embedding a live preview in a modal.
+   - One-click safe printing through invisible print iframe.
+   - Direct HTML and PDF downloads.
+   - WhatsApp bill sharing and payment reminders with dynamic UPI QR codes.
 
-## Expanding the ESLint configuration
+4. **Commercial Financial Management**:
+   - **Dashboard**: Period filters (Today, This Week, This Month), 7-day revenue trend chart with interactive values, and top revenue parties.
+   - **Party Ledgers**: Accurate transaction records for both Consignors and Consignees with running balance and one-click Excel statements.
+   - **Excel Export**: Full export support for bill history and party ledger statements.
+   - **Security**: Master PIN protection, offline JSON database backup & restore, and optional Supabase cloud sync.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🛠️ Tech Stack
+
+- **Framework**: React 19 + Vite 8
+- **Styling**: Tailwind CSS v4 with custom dark mode variants & CSS tokens
+- **Offline Database**: Dexie (IndexedDB)
+- **Icons**: Lucide React
+- **Export & Utility**: SheetJS (XLSX), QRCode, jsPDF
+
+## 📦 Getting Started
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server on port 3000
+npm run dev
+
+# Build for production
+npm run build
+```

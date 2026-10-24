@@ -1,104 +1,214 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
 
-body {
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  background: #f8fafc;
-  color: #1e293b;
-  -webkit-tap-highlight-color: transparent;
+@theme {
+  --color-brand-50: #f0fdf4;
+  --color-brand-100: #dcfce7;
+  --color-brand-200: #bbf7d0;
+  --color-brand-500: #22c55e;
+  --color-brand-600: #16a34a;
+  --color-brand-700: #15803d;
+  --color-brand-800: #1a3a2a;
+  --color-brand-900: #14291e;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: #f1f5f9; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+/* ─── DESIGN TOKENS (LIGHT & DARK) ───────────────────────────────── */
+:root, [data-theme="light"] {
+  --brand-primary: #15803d;
+  --brand-accent: #16a34a;
+  --brand-light: #f0fdf4;
+  --brand-border: #bbf7d0;
+  --bg-app: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-surface: #f1f5f9;
+  --border-main: #e2e8f0;
+  --border-sub: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+}
 
-/* Autocomplete */
+.dark, [data-theme="dark"] {
+  --brand-primary: #34d399;
+  --brand-accent: #10b981;
+  --brand-light: #064e3b;
+  --brand-border: #047857;
+  --bg-app: #090d14;
+  --bg-card: #121824;
+  --bg-surface: #1a2233;
+  --border-main: #243044;
+  --border-sub: #1a2233;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #64748b;
+  --input-bg: #0f1520;
+  --input-border: #2c3950;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* ─── AUTOCOMPLETE ───────────────────────────────────────────────── */
 .ac-dropdown {
   position: absolute;
-  top: calc(100% + 2px);
+  top: calc(100% + 4px);
   left: 0;
   right: 0;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-main);
+  border-radius: 12px;
   z-index: 200;
-  max-height: 220px;
+  max-height: 240px;
   overflow-y: auto;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
 }
 
 .ac-item {
-  padding: 11px 14px;
+  padding: 10px 14px;
   cursor: pointer;
-  font-size: 14px;
-  color: #1e293b;
-  border-bottom: 1px solid #f8fafc;
+  font-size: 13.5px;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-sub);
   min-height: 44px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  transition: background 0.1s;
+  transition: background 0.12s;
 }
 
-.ac-item:hover { background: #f0fdfa; }
-.ac-item:last-child { border-bottom: none; }
+.ac-item:hover, .ac-item.active {
+  background: var(--bg-surface);
+  color: var(--brand-accent);
+}
 
-/* Input base */
+.ac-item:last-child {
+  border-bottom: none;
+}
+
+/* ─── INPUT BASE ─────────────────────────────────────────────────── */
 .inp {
   width: 100%;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid var(--input-border);
   border-radius: 10px;
-  padding: 11px 14px;
+  padding: 10px 14px;
   font-size: 14px;
-  color: #1e293b;
-  background: white;
+  color: var(--text-primary);
+  background-color: var(--input-bg);
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
   min-height: 44px;
 }
 
 .inp:focus {
-  border-color: #0d9488;
-  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.18);
 }
 
-/* Pulse animation for sync indicator */
-@keyframes pulse-ring {
-  0% { transform: scale(0.8); opacity: 1; }
-  100% { transform: scale(2); opacity: 0; }
+.inp::placeholder {
+  color: var(--text-muted);
 }
 
-.sync-pulse::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: #fbbf24;
-  animation: pulse-ring 1.2s ease-out infinite;
+/* ─── CARDS & SECTIONS ───────────────────────────────────────────── */
+.card-base {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-main);
+  border-radius: 16px;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-/* Mobile bottom nav safe area */
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-  .mobile-nav { padding-bottom: env(safe-area-inset-bottom); }
-}
-
-/* Print styles */
-@media print {
-  body { background: white; }
-  .no-print { display: none !important; }
-}
-
-/* Smooth page transitions */
+/* ─── PAGE TRANSITION ────────────────────────────────────────────── */
 .page-enter {
-  animation: pageIn 0.2s ease-out;
+  animation: pageIn 0.15s ease-out;
 }
 
 @keyframes pageIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── SCROLLBAR ──────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-app);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-main);
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ─── MOBILE SAFE AREA ───────────────────────────────────────────── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .mobile-nav {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ─── PRINT RULES (ALWAYS CLEAN WHITE PAPER INVOICE) ─────────────── */
+@media print {
+  @page {
+    margin: 8mm;
+    size: auto;
+  }
+  
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .no-print,
+  aside,
+  nav,
+  header,
+  .mobile-nav,
+  button,
+  .toast-container {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .invoice-container {
+    border: none !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
 }
